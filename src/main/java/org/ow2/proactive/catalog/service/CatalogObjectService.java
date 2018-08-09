@@ -64,6 +64,7 @@ import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
+import org.ow2.proactive.catalog.util.WorkflowExtensionAdderUtil;
 import org.ow2.proactive.catalog.util.name.validator.KindNameValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,8 +116,9 @@ public class CatalogObjectService {
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
+        String objectName = WorkflowExtensionAdderUtil.addXmlExtensionForWorkflowKind(name, kind);
         return this.createCatalogObject(bucketName,
-                                        name,
+                                        objectName,
                                         kind,
                                         commitMessage,
                                         contentType,
@@ -135,22 +137,22 @@ public class CatalogObjectService {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
 
         return filesContainedInArchive.stream().map(file -> {
+
+            String objectName = WorkflowExtensionAdderUtil.addXmlExtensionForWorkflowKind(file.getFileNameWithExtension(),
+                                                                                          kind);
             CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
-                                                                                                                               file.getFileNameWithExtension()));
+                                                                                                                               objectName));
             if (catalogObject == null) {
                 String contentTypeOfFile = getFileMimeType(file);
                 return this.createCatalogObject(bucketName,
-                                                file.getFileNameWithExtension(),
+                                                objectName,
                                                 kind,
                                                 commitMessage,
                                                 contentTypeOfFile,
                                                 Collections.emptyList(),
                                                 file.getContent());
             } else {
-                return this.createCatalogObjectRevision(bucketName,
-                                                        file.getFileNameWithExtension(),
-                                                        commitMessage,
-                                                        file.getContent());
+                return this.createCatalogObjectRevision(bucketName, objectName, commitMessage, file.getContent());
             }
         }).collect(Collectors.toList());
     }
@@ -187,8 +189,8 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(catalogObjectEntity);
     }
 
-    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String contentType, List<Metadata> metadataList, byte[] rawObject) {
+    protected CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind,
+            String commitMessage, String contentType, List<Metadata> metadataList, byte[] rawObject) {
         if (!kindNameValidator.isValid(kind)) {
             throw new KindNameIsNotValidException(kind);
         }

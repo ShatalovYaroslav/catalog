@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.util;
 import java.io.ByteArrayInputStream;
 
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -56,14 +55,8 @@ public class RawObjectResponseCreator {
         ResponseEntity.BodyBuilder responseBodyBuilder = ResponseEntity.ok().contentLength(bytes.length);
 
         try {
-            String contentDispositionFileName = name;
-
-            //add the .xml extension to contentDispositionFileName for workflow if the extension was not yet in name
-            if (rawObject.getKind() != null && rawObject.getContentType() != null &&
-                rawObject.getKind().toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()) &&
-                !name.endsWith(WORKFLOW_EXTENSION)) {
-                contentDispositionFileName += WORKFLOW_EXTENSION;
-            }
+            String contentDispositionFileName = WorkflowExtensionAdderUtil.addXmlExtensionForWorkflowKind(name,
+                                                                                                          rawObject.getKind());
             responseBodyBuilder.header(HttpHeaders.CONTENT_DISPOSITION,
                                        "attachment; filename=\"" + contentDispositionFileName + "\"");
         } catch (Exception e) {
@@ -80,4 +73,5 @@ public class RawObjectResponseCreator {
 
         return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
     }
+
 }
