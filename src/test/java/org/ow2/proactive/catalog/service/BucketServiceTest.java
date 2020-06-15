@@ -104,7 +104,7 @@ public class BucketServiceTest {
                                                                                                     any(),
                                                                                                     any(),
                                                                                                     any(Sort.class));
-        verify(bucketRepository, times(1)).findByOwnerIsInContainingKind(any(List.class), anyString(), any(Sort.class));
+        verify(bucketRepository, times(0)).findByOwnerIsInContainingKind(any(List.class), anyString(), any(Sort.class));
     }
 
     @Test

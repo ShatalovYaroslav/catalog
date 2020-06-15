@@ -84,4 +84,9 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
                    " OR bk.catalogObjects IS EMPTY) GROUP BY bk.bucketName, bk.owner, bk.id")
     List<Object[]> findByOwnerIsInContainingKind(List<String> owners, String kind, Sort sort);
 
+    @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
+                   " WHERE bk.owner in ?1 AND (cos.kind = ?2" +
+                   " OR bk.catalogObjects IS EMPTY) GROUP BY bk.bucketName, bk.owner, bk.id")
+    List<Object[]> findByOwnerIsInEqualsKind(List<String> owners, String kind, Sort sort);
+
 }
