@@ -64,7 +64,8 @@ import lombok.NoArgsConstructor;
 @BatchSize(size = 25)
 @Entity
 @NamedEntityGraph(name = "catalogObject.withRevisions", attributeNodes = { @NamedAttributeNode("revisions") })
-@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_TIME,KIND") })
+@Table(name = "CATALOG_OBJECT", indexes = { @Index(name = "last_commit_time_index", columnList = "LAST_COMMIT_TIME"),
+                                            @Index(name = "kind_index", columnList = "KIND") })
 public class CatalogObjectEntity implements Serializable {
 
     @AllArgsConstructor
